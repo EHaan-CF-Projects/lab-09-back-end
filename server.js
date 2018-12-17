@@ -22,7 +22,7 @@ client.on('error', err => console.error(err));
 
 //API Routes
 app.get('/location', getLocation);
-// app.get('/weather', getWeather);
+app.get('/weather', getWeather);
 // app.get('yelp', getYelp);
 // app.get('/movies', getMovies);
 
@@ -44,12 +44,28 @@ function getLocation(req, res){
   },
   cacheMiss : (query) => {
       return searchForLocation(query)
-      .then(result => {
-          res.send(result);
-      })
+        .then(result => {
+            res.send(result);
+        })
     }
   }
   lookupLocation(req.query.data, lookupHandler);
+}
+
+function getWeather(req, res){
+  let lookupWeatherHandler = {
+    cacheHit : (data) => {
+      console.log('Weather retrieved from database')
+      res.status(200).send(data.rows[0]);
+    },
+    cacheMiss : (query) => {
+      return searchForWeather(query)
+        .then(result => {
+          res.send(result);
+        })
+    }
+  }
+  lookupWeatherHandler(req.query.data, lookupWeatherHandler);
 }
 
 // Database Lookup
@@ -66,12 +82,29 @@ function lookupLocation(query, handler){
   })
 }
 
+function lookupWeather(query, handler){
+  const SQL = 'SELECT * FROM weathers WHERE location_id=$1';
+  return client.query(SQL, [query.id])
+   .then(data => {
+     if (data.rowCount){
+       handler.cacheHit(data);
+     } else {
+       handler.cacheMiss(query);
+     }
+   })
+}
+
 // Constructors
 function Location(location){
   this.formatted_query = location.formatted_address;
   this.latitude = location.geometry.location.lat;
   this.longitude = location.geometry.location.lng;
   this.short_name = location.address_components[0].short_name;
+}
+
+function Daily(dayForecast){
+  this.forecast = dayForecast.summary;
+  this.time = new Date(dayForecast.time * 1000).toDateString();
 }
 
 // Search for Resource
@@ -93,3 +126,15 @@ function searchForLocation(query){
     .catch(err => console.error(err));
 }
 
+function searchForWeather(query){
+  const weatherURL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API}/${query.latitude},${query.longitude}`
+  return superagent.get(weatherURL)
+    .then(weatherData => {
+      console.log('Weather retrieved from API')
+      let dailyWeatherArray = weatherData.body.daily.map(forecast => new Daily(forecast));
+      let SQL = `INSERT INTO locations
+      (forecast, time, location_id)
+      VALUES($1, $2, $3)`;
+    })
+  
+}
