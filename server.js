@@ -311,23 +311,7 @@ app.get('/trails', (req, res) => {
   })
 })
 
-
-
-
 // Constructors
-
-function Trail(nearbyTrail) {
-  this.name = nearbyTrail.name;
-  this.location = nearbyTrail.location;
-  this.length = nearbyTrail.length;
-  this.stars = nearbyTrail.stars;
-  this.star_votes = nearbyTrail.starVotes;
-  this.summary = nearbyTrail.summary;
-  this.trail_url = nearbyTrail.trail_url;
-  this.conditionDetails = nearbyTrail.conditionDetails;
-  this.condition_date = nearbyTrail.conditionDate.slice(0,9);
-  this.condition_time = nearbyTrail.conditionDate.slice(11,18);
-}
 
 function Location(location){
   this.formatted_query = location.formatted_address;
@@ -364,4 +348,17 @@ function Meetup(upcomingMeetup) {
   this.name = upcomingMeetup.name;
   this.date = new Date(upcomingMeetup.group.created * 1000).toDateString();
   this.host = upcomingMeetup.group.name;
+}
+
+function Trail(nearbyTrail) {
+  this.name = nearbyTrail.name;
+  this.location = nearbyTrail.location;
+  this.length = nearbyTrail.length;
+  this.stars = nearbyTrail.stars;
+  this.star_votes = nearbyTrail.starVotes;
+  this.summary = nearbyTrail.summary;
+  this.trail_url = nearbyTrail.trail_url;
+  this.conditionDetails = nearbyTrail.conditionDetails;
+  this.condition_date = nearbyTrail.conditionDate.slice(0,9);
+  this.condition_time = nearbyTrail.conditionDate.slice(11,18);
 }
