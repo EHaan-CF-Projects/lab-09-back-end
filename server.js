@@ -86,6 +86,7 @@ app.get('/weather', (req, res) => {
         console.log('Weather retrieved from database')
         res.status(200).send(data.rows);
       } else {
+
   //if not, get it from API
         const URL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API}/${req.query.data.latitude},${req.query.data.longitude}`;
         return superagent.get(URL)
@@ -119,6 +120,57 @@ app.get('/weather', (req, res) => {
   })
 })
 
+//===============YELP==============================
+app.get('/yelp', (req, res) => {
+  //check out db for stored data
+  let SQL = 'SELECT * FROM weathers WHERE location_id=$1';
+  let values = [req.query.data.id];
+  client.query(SQL, values)
+
+  // if we have it, send it back
+    .then(data => {
+      if(data.rowCount) {
+        console.log('Yelp retrieved from database')
+        res.status(200).send(data.rows);
+      } else {
+
+  // if not, get it from API
+        const URL = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${req.query.data.latitude}&longitude=${req.query.data.longitude}`;
+        return superagent.get(URL)
+          .set('Authorization', `Bearer ${process.env.YELP_API}`)
+          .then(result => {
+            console.log('Yelp retrieved from API')
+          
+  // normalize it
+            let yelpReviews = result.body.businesses.map(business => {
+              let review = new Yelp(business);
+              SQL = `INSERT INTO yelps
+                    (name, image_url, price, rating, url, location_id)
+                    VALUES($1, $2, $3, $4, $5, $6)`;
+    
+  // store it in database
+              values = [review.name, review.image_url, review.price, review.rating, review.url, req.query.data.id];
+              client.query(SQL, values);
+              return(review);
+            })
+  
+  // then send it back
+            res.status(200).send(yelpReviews);
+          })
+        .catch(err => {
+          console.error(err);
+          res.send(err)
+        })
+      }
+    })
+  .catch(err => {
+    console.error(err);
+    res.send(err)
+  })
+})
+
+//===============TMDB==============================
+
 
 // Constructors
 
@@ -131,4 +183,12 @@ function Location(location){
 function Forecast(dailyForecast){
   this.time = new Date(dailyForecast.time * 1000).toDateString();
   this.forecast = dailyForecast.summary;
+}
+
+function Yelp(business){
+  this.name = business.name;
+  this.image_url = business.image_url;
+  this.price = business.price;
+  this.rating = business.rating;
+  this.url = business.url;
 }
