@@ -1,8 +1,6 @@
 # lab-09-back-end
 City Explorer
 
-# lab-08-back-end City Explorer
-
 **Author**: Evy Haan
 **Version**: 1.0.0
 
@@ -13,20 +11,17 @@ City Explorer helps users get to know locations they are visiting
 <!-- What are the steps that a user must take in order to build this app on their own machine and get it running? -->
 
 ## Architecture
-JavaScript, various APIs, SQL
+JavaScript, various APIs, SQL, Postman
+
+## Feature Log
+Number and name of feature: Feature 1: Retrieve Meetup Info
+Estimate of time needed to complete: 1 hr
+Start time: 10:30am
+Finish time: 12:00pm
+Actual time needed to complete: 1.5 hrs
 
 ## Change Log
-Number and name of feature: Feature 1: Retrieve Meetup Info
-
-Estimate of time needed to complete: 
-
-Start time: 
-
-Finish time:
-
-##Actual time needed to complete:
-
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+12-18-2018 12:00pm - Meetups module is running. Will search database first, then grab API to fill the database.
 
 ## Credits and Collaborations
 
