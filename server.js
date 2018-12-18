@@ -263,8 +263,71 @@ app.get('/meetups', (req, res) => {
   })
 })
 
+//===============Trails==============================
+app.get('/trails', (req, res) => {
+  let SQL = 'SELECT * FROM trails WHERE location_id=$1';
+  let values = [req.query.data.id];
+  client.query(SQL, values)
+
+  //if we have it, send it back
+    .then(data => {
+      if (data.rowCount) {
+        console.log('Trails retrieved from database')
+        res.status(200).send(data.rows);
+      } else {
+        
+  // if not, get it from API
+        const URL = `https://www.hikingproject.com/data/get-trails?lat=${req.query.data.latitude}&lon=${req.query.data.longitude}&key=${process.env.HIKING_PROJECT_API_KEY}`;
+        return superagent.get(URL)
+          .then(result => {
+            console.log('Trails retrieved from API')
+
+  // normalize it
+            let hikeSuggestions = result.body.trails.map(nearbyTrail => {
+              let localTrails = new Trail(nearbyTrail);
+              SQL = `INSERT INTO trails
+                    (name, location, length, stars, star_votes, summary, trail_url, conditions, condition_date, condition_time, location_id)
+                    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
+
+  // store it in database
+  values = [localTrails.name, localTrails.location, localTrails.length, localTrails.stars, localTrails.starVotes, localTrails.summary, localTrails.trail_url, localTrails.conditionDetails, localTrails.condition_date, localTrails.condition_time, req.query.data.id]
+  console.log(localTrails.conditionDetails);
+              client.query(SQL, values);
+              return(localTrails);
+            })
+          
+  // then send it back
+            res.status(200).send(hikeSuggestions);
+          })
+        .catch(err => {
+          console.error(err);
+          res.send(err)
+          })
+      }
+    })
+  .catch(err => {
+    console.error(err);
+    res.send(err)
+  })
+})
+
+
+
+
 // Constructors
 
+function Trail(nearbyTrail) {
+  this.name = nearbyTrail.name;
+  this.location = nearbyTrail.location;
+  this.length = nearbyTrail.length;
+  this.stars = nearbyTrail.stars;
+  this.star_votes = nearbyTrail.starVotes;
+  this.summary = nearbyTrail.summary;
+  this.trail_url = nearbyTrail.trail_url;
+  this.conditionDetails = nearbyTrail.conditionDetails;
+  this.condition_date = nearbyTrail.conditionDate.slice(0,9);
+  this.condition_time = nearbyTrail.conditionDate.slice(11,18);
+}
 
 function Location(location){
   this.formatted_query = location.formatted_address;
