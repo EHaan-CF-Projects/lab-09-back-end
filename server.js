@@ -216,9 +216,6 @@ app.get('/movies', (req, res) => {
   }) 
 })
 
-
-
-
 // Constructors
 
 function Location(location){

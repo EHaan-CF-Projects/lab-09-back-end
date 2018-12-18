@@ -1,10 +1,10 @@
-# lab-08-back-end
+# lab-09-back-end
 City Explorer
 
 # lab-08-back-end City Explorer
 
-**Author**: Lorin Stewart & Evy Haan
-**Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
+**Author**: Evy Haan
+**Version**: 1.0.0
 
 ## Overview
 City Explorer helps users get to know locations they are visiting
@@ -16,11 +16,11 @@ City Explorer helps users get to know locations they are visiting
 JavaScript, various APIs, SQL
 
 ## Change Log
-Number and name of feature: Feature 1: Caching data
+Number and name of feature: Feature 1: Retrieve Meetup Info
 
-Estimate of time needed to complete: 3 hours
+Estimate of time needed to complete: 
 
-Start time: 6:12pm
+Start time: 
 
 Finish time:
 
