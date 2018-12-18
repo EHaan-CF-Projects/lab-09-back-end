@@ -216,7 +216,55 @@ app.get('/movies', (req, res) => {
   }) 
 })
 
+//===============Meetups==============================
+app.get('/meetups', (req, res) => {
+  //check out db for stored data
+  let SQL = 'SELECT * FROM meetups WHERE location_id=$1';
+  let values = [req.query.data.id];
+  client.query(SQL, values)
+
+  // if we have it, send it back
+    .then(data => {
+      if (data.rowCount) {
+      console.log('Meetups retrieved from database')
+      res.status(200).send(data.rows);
+      } else {
+
+  //if not, get it from API
+        const URL = `https://api.meetup.com/find/upcoming_events?sign=true&photo-host=public&lon=${req.query.data.longitude}&page=20&lat=${req.query.data.latitude}&key=${process.env.MEETUPS_API_KEY}`;
+        return superagent.get(URL)
+          .then (result => {
+            console.log('Meetups retrieved from API')
+
+  // normalize it
+            let meetupSuggestions = result.body.events.map(upcomingMeetup => {
+              let localMeetups = new Meetup(upcomingMeetup);
+              SQL = `INSERT INTO meetups
+                    (link, name, creation_date, host, location_id)
+                    VALUES($1, $2, $3, $4, $5)`;
+
+  // store it in database
+              values = [localMeetups.link, localMeetups.name, localMeetups.date, localMeetups.host, req.query.data.id]
+              client.query(SQL, values);
+              return(localMeetups);
+            })
+  // then send it back
+            res.status(200).send(meetupSuggestions);
+          })
+        .catch(err => {
+          console.error(err);
+          res.send(err)
+        })
+      }
+    })
+  .catch(err => {
+    console.error(err);
+    res.send(err)
+  })
+})
+
 // Constructors
+
 
 function Location(location){
   this.formatted_query = location.formatted_address;
@@ -246,4 +294,11 @@ function Movie(newMovie){
   this.image_url = 'https://image.tmdb.org/t/p/w200_and_h300_bestv2/' + newMovie.poster_path;
   this.popularity = newMovie.popularity;
   this.released_on = newMovie.release_date;
+}
+
+function Meetup(upcomingMeetup) {
+  this.link = upcomingMeetup.link;
+  this.name = upcomingMeetup.name;
+  this.date = new Date(upcomingMeetup.group.created * 1000).toDateString();
+  this.host = upcomingMeetup.group.name;
 }
