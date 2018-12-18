@@ -61,7 +61,6 @@ app.get('/location', (req, res) => {
   
   // then send it back 
             .then( (result) => {
-              console.log(result.rows[0])
                res.status(200).send(result.rows[0]);
              })
           })
@@ -193,11 +192,11 @@ app.get('/movies', (req, res) => {
             let movieSuggestions = result.body.results.map(newMovie => {
               let localMovie = new Movie(newMovie);
               SQL = `INSERT INTO movies
-                    (title, overview, average_votes, total_votes, img_url, popularity, released_on, location_id)
+                    (title, overview, average_votes, total_votes, image_url, popularity, released_on, location_id)
                     VALUES($1, $2, $3, $4, $5, $6, $7, $8)`;
 
   // store it in datbase
-              values = [localMovie.title, localMovie.overview, localMovie.average_votes, localMovie.total_votes, localMovie.image_url, localMovie.popularity, localMovie.released_on, location_id];
+              values = [localMovie.title, localMovie.overview, localMovie.average_votes, localMovie.total_votes, localMovie.image_url, localMovie.popularity, localMovie.released_on, req.query.data.id];
               client.query(SQL, values);
               return(localMovie);
             })
@@ -243,7 +242,7 @@ function Yelp(business){
 }
 
 function Movie(newMovie){
-  this.title = newmovie.title;
+  this.title = newMovie.title;
   this.overview = newMovie.overview;
   this.average_votes = newMovie.vote_average;
   this.total_votes = newMovie.vote_count;
