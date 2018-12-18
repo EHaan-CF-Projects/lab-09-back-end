@@ -53,15 +53,14 @@ app.get('/location', (req, res) => {
   // normalize it
             let location = new Location(result.body.results[0]);
             let SQL = `INSERT INTO locations
-                      (search_query, formatted_query, latitude, longitude)
-                      VALUES($1, $2, $3, $4) RETURNING *`;
+                      (search_query, formatted_query, latitude, longitude, short_name)
+                      VALUES($1, $2, $3, $4, $5) RETURNING *`;
 
   // store it in database
-            return client.query(SQL, [query, location.formatted_query, location.latitude, location.longitude])
+            return client.query(SQL, [query, location.formatted_query, location.latitude, location.longitude, location.short_name])
   
   // then send it back 
             .then( (result) => {
-              console.log(result.rows[0])
                res.status(200).send(result.rows[0]);
              })
           })
@@ -123,7 +122,7 @@ app.get('/weather', (req, res) => {
 //===============YELP==============================
 app.get('/yelp', (req, res) => {
   //check out db for stored data
-  let SQL = 'SELECT * FROM weathers WHERE location_id=$1';
+  let SQL = 'SELECT * FROM yelps WHERE location_id=$1';
   let values = [req.query.data.id];
   client.query(SQL, values)
 
@@ -170,6 +169,54 @@ app.get('/yelp', (req, res) => {
 })
 
 //===============TMDB==============================
+app.get('/movies', (req, res) => {
+  //check out db for stored data
+  let SQL = 'SELECT * FROM movies WHERE location_id=$1';
+  let values = [req.query.data.id];
+  client.query(SQL, values)
+
+  // if we have it, send it back
+    .then(data => {
+      if(data.rowCount) {
+        console.log('Movies retrieved from database')
+        res.status(200).send(data.rows);
+      } else {
+      
+  // if not, get it from API
+        const URL = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIES_DB_API}&query=${req.query.data.short_name}`;
+        return superagent.get(URL)
+          .then (result => {
+            console.log('Movies retrieved from API')
+
+  // normalize it
+            let movieSuggestions = result.body.results.map(newMovie => {
+              let localMovie = new Movie(newMovie);
+              SQL = `INSERT INTO movies
+                    (title, overview, average_votes, total_votes, image_url, popularity, released_on, location_id)
+                    VALUES($1, $2, $3, $4, $5, $6, $7, $8)`;
+
+  // store it in datbase
+              values = [localMovie.title, localMovie.overview, localMovie.average_votes, localMovie.total_votes, localMovie.image_url, localMovie.popularity, localMovie.released_on, req.query.data.id];
+              client.query(SQL, values);
+              return(localMovie);
+            })
+
+  // then send it back
+            res.status(200).send(movieSuggestions);
+          })
+        .catch(err => {
+          console.error(err);
+          res.send(err)
+        })
+      }
+    })
+  .catch(err => {
+    console.error(err);
+    res.send(err)
+  }) 
+})
+
+
 
 
 // Constructors
@@ -178,6 +225,7 @@ function Location(location){
   this.formatted_query = location.formatted_address;
   this.latitude = location.geometry.location.lat;
   this.longitude = location.geometry.location.lng;
+  this.short_name = location.address_components[0].short_name;
 }
 
 function Forecast(dailyForecast){
@@ -191,4 +239,14 @@ function Yelp(business){
   this.price = business.price;
   this.rating = business.rating;
   this.url = business.url;
+}
+
+function Movie(newMovie){
+  this.title = newMovie.title;
+  this.overview = newMovie.overview;
+  this.average_votes = newMovie.vote_average;
+  this.total_votes = newMovie.vote_count;
+  this.image_url = 'https://image.tmdb.org/t/p/w200_and_h300_bestv2/' + newMovie.poster_path;
+  this.popularity = newMovie.popularity;
+  this.released_on = newMovie.release_date;
 }
