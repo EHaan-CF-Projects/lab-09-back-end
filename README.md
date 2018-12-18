@@ -23,12 +23,14 @@ Actual time needed to complete: 2hrs
 Number and name of feature: Feature 2: Retrieve Hiking Project Info
 Estimate of time needed to complete: 1 hr
 Start time: 2:00pm
-Finish time:
-Actual time needed to complete:
+Finish time: 3:15pm
+Actual time needed to complete: 1.25 hrs
 
 ## Change Log
 
-12-18-2018 12:00pm - Meetup module functioning.
+12-18-2018 12:00pm - Meetup module functioning. --Created on date is not displaying--
+12-18-2018 03:15pm - Hikes module functioning. --conditions is not displaying--
+
 
 ## Credits and Collaborations
 
