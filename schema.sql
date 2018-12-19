@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS trails (
   star_votes INTEGER,
   summary TEXT,
   trail_url VARCHAR(255),
-  conditions VARCHAR(255),
+  condition_details VARCHAR(255),
   condition_date VARCHAR(255),
   condition_time VARCHAR(255),
   location_id INTEGER NOT NULL REFERENCES locations(id) 

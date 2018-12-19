@@ -339,11 +339,11 @@ app.get('/trails', (req, res) => {
             let hikeSuggestions = result.body.trails.map(nearbyTrail => {
               let localTrails = new Trail(nearbyTrail);
               SQL = `INSERT INTO trails
-                    (name, location, length, stars, star_votes, summary, trail_url, conditions, condition_date, condition_time, location_id)
+                    (name, location, length, stars, star_votes, summary, trail_url, condition_details, condition_date, condition_time, location_id)
                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
 
   // store it in database
-  values = [localTrails.name, localTrails.location, localTrails.length, localTrails.stars, localTrails.starVotes, localTrails.summary, localTrails.trail_url, localTrails.conditionDetails, localTrails.condition_date, localTrails.condition_time, req.query.data.id]
+  values = [localTrails.name, localTrails.location, localTrails.length, localTrails.stars, localTrails.star_votes, localTrails.summary, localTrails.trail_url, localTrails.condition_details, localTrails.condition_date, localTrails.condition_time, req.query.data.id]
   console.log(localTrails.conditionDetails);
               client.query(SQL, values);
               return(localTrails);
@@ -366,7 +366,6 @@ app.get('/trails', (req, res) => {
 
 
 
-
 // Constructors
 
 function Trail(nearbyTrail) {
@@ -377,7 +376,7 @@ function Trail(nearbyTrail) {
   this.star_votes = nearbyTrail.starVotes;
   this.summary = nearbyTrail.summary;
   this.trail_url = nearbyTrail.trail_url;
-  this.conditionDetails = nearbyTrail.conditionDetails;
+  this.condition_details = nearbyTrail.conditionDetails;
   this.condition_date = nearbyTrail.conditionDate.slice(0,9);
   this.condition_time = nearbyTrail.conditionDate.slice(11,18);
 }
