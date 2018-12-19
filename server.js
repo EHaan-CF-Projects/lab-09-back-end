@@ -6,6 +6,13 @@ const superagent = require('superagent');
 const pg = require('pg');
 const cors = require('cors');
 
+const timeouts = {
+  weather : 15 * 1000, //refresh after 15 seconds
+  yelp : 60 * 60 * 24 * 168 * 2016, //refresh after 3 months
+  meetups : 60 * 60 * 24 * 1000 // refresh daily
+
+}
+
 //Environment Variobles
 require('dotenv').config();
 
@@ -96,11 +103,11 @@ app.get('/weather', (req, res) => {
             let weeklyForecast = result.body.daily.data.map(dailyForecast => {
               let weather = new Forecast(dailyForecast);
               SQL = `INSERT INTO weathers
-                    (time, forecast, location_id)
-                    VALUES($1, $2, $3)`;
+                    (time, forecast, created_at, location_id)
+                    VALUES($1, $2, $3, $4)`;
   
 // store it in database
-              values = [weather.time, weather.forecast, req.query.data.id];
+              values = [weather.time, weather.forecast, Date.now(), req.query.data.id];
               client.query(SQL, values);
               return(weather);
             })
@@ -291,7 +298,7 @@ app.get('/trails', (req, res) => {
 
   // store it in database
   values = [localTrails.name, localTrails.location, localTrails.length, localTrails.stars, localTrails.starVotes, localTrails.summary, localTrails.trail_url, localTrails.conditionDetails, localTrails.condition_date, localTrails.condition_time, req.query.data.id]
-  console.log(localTrails.conditionDetails);
+  // console.log(localTrails.conditionDetails);
               client.query(SQL, values);
               return(localTrails);
             })
@@ -315,20 +322,6 @@ app.get('/trails', (req, res) => {
 
 
 // Constructors
-
-function Trail(nearbyTrail) {
-  this.name = nearbyTrail.name;
-  this.location = nearbyTrail.location;
-  this.length = nearbyTrail.length;
-  this.stars = nearbyTrail.stars;
-  this.star_votes = nearbyTrail.starVotes;
-  this.summary = nearbyTrail.summary;
-  this.trail_url = nearbyTrail.trail_url;
-  this.conditionDetails = nearbyTrail.conditionDetails;
-  this.condition_date = nearbyTrail.conditionDate.slice(0,9);
-  this.condition_time = nearbyTrail.conditionDate.slice(11,18);
-}
-
 function Location(location){
   this.formatted_query = location.formatted_address;
   this.latitude = location.geometry.location.lat;
@@ -364,4 +357,17 @@ function Meetup(upcomingMeetup) {
   this.name = upcomingMeetup.name;
   this.creation_date = new Date(upcomingMeetup.group.created).toDateString();
   this.host = upcomingMeetup.group.name;
+}
+
+function Trail(nearbyTrail) {
+  this.name = nearbyTrail.name;
+  this.location = nearbyTrail.location;
+  this.length = nearbyTrail.length;
+  this.stars = nearbyTrail.stars;
+  this.star_votes = nearbyTrail.starVotes;
+  this.summary = nearbyTrail.summary;
+  this.trail_url = nearbyTrail.trail_url;
+  this.conditionDetails = nearbyTrail.conditionDetails;
+  this.condition_date = nearbyTrail.conditionDate.slice(0,9);
+  this.condition_time = nearbyTrail.conditionDate.slice(11,18);
 }
