@@ -12,8 +12,7 @@ CREATE TABLE IF NOT EXISTS locations (
 CREATE TABLE IF NOT EXISTS weathers ( 
   id SERIAL PRIMARY KEY, 
   forecast VARCHAR(255), 
-  time VARCHAR(255),
-  created_at NUMERIC,
+  time VARCHAR(255), 
   location_id INTEGER NOT NULL REFERENCES locations(id) 
 );
   
