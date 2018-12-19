@@ -244,7 +244,7 @@ app.get('/meetups', (req, res) => {
                     VALUES($1, $2, $3, $4, $5)`;
 
   // store it in database
-              values = [localMeetups.link, localMeetups.name, localMeetups.date, localMeetups.host, req.query.data.id]
+              values = [localMeetups.link, localMeetups.name, localMeetups.creation_date, localMeetups.host, req.query.data.id]
               client.query(SQL, values);
               return(localMeetups);
             })
@@ -362,6 +362,6 @@ function Movie(newMovie){
 function Meetup(upcomingMeetup) {
   this.link = upcomingMeetup.link;
   this.name = upcomingMeetup.name;
-  this.date = new Date(upcomingMeetup.group.created * 1000).toDateString();
+  this.creation_date = new Date(upcomingMeetup.group.created).toDateString();
   this.host = upcomingMeetup.group.name;
 }
