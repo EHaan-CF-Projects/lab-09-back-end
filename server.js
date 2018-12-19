@@ -30,6 +30,59 @@ function handleError (err, res) {
 }
 
 //===============LOCATION==============================
+// app.get('/location', getLocation);
+
+// function getLocation(req, res) {
+//   let lookupHandler = {
+//     cacheHit : (data) => {
+//   console.log('Location retrieved from database')
+//   res.status(200).send(data.rows[0]);
+//     },
+//     cacheMiss : (query) => {
+//       return fetchLocation(query)
+//         .then(result => {
+//           res.send(result)
+//         })
+//     }
+//   }
+//   lookupLocation(req.query.data, lookupHandler);
+// }
+
+// function lookupLocation(query, handler) {
+//   //check our db for stored data
+//   const SQL = 'SELECT * FROM locations WHERE search_query=$1';
+//   const values = [query];
+//   return client.query(SQL, values)
+//   .then(data => {
+//   //if we have it, send it back; if not, get it from API
+//     if(data.rowCount){
+//       handler.cacheHit(data);
+//     } else {
+//       handler.cacheMiss(query);
+//     }
+//   })
+// }
+
+// function fetchLocation(query) {
+//   const URL = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GOOGLE_MAPS_API}`
+//   return superagent.get(URL)
+//     .then(result => {
+//       console.log('location retrieved from API')
+
+// // normalize it & store it in database
+//       let location = new Location(result.body.results[0]);
+//       let SQL = `INSERT INTO locations
+//                 (search_query, formatted_query, latitude, longitude, short_name)
+//                 VALUES($1, $2, $3, $4, $5) RETURNING *`;
+//       return client.query(SQL, [query, location.formatted_query, location.latitude, location.longitude, location.short_name])
+
+// // then send it back 
+//       .then( (result) => {
+//         return result.rows[0];
+//       })
+//     })
+// }
+
 app.get('/location', (req, res) => {
   let query = req.query.data;
   
@@ -286,11 +339,11 @@ app.get('/trails', (req, res) => {
             let hikeSuggestions = result.body.trails.map(nearbyTrail => {
               let localTrails = new Trail(nearbyTrail);
               SQL = `INSERT INTO trails
-                    (name, location, length, stars, star_votes, summary, trail_url, conditions, condition_date, condition_time, location_id)
+                    (name, location, length, stars, star_votes, summary, trail_url, condition_details, condition_date, condition_time, location_id)
                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
 
   // store it in database
-  values = [localTrails.name, localTrails.location, localTrails.length, localTrails.stars, localTrails.starVotes, localTrails.summary, localTrails.trail_url, localTrails.conditionDetails, localTrails.condition_date, localTrails.condition_time, req.query.data.id]
+  values = [localTrails.name, localTrails.location, localTrails.length, localTrails.stars, localTrails.star_votes, localTrails.summary, localTrails.trail_url, localTrails.condition_details, localTrails.condition_date, localTrails.condition_time, req.query.data.id]
   console.log(localTrails.conditionDetails);
               client.query(SQL, values);
               return(localTrails);
@@ -313,7 +366,6 @@ app.get('/trails', (req, res) => {
 
 
 
-
 // Constructors
 
 function Trail(nearbyTrail) {
@@ -324,7 +376,7 @@ function Trail(nearbyTrail) {
   this.star_votes = nearbyTrail.starVotes;
   this.summary = nearbyTrail.summary;
   this.trail_url = nearbyTrail.trail_url;
-  this.conditionDetails = nearbyTrail.conditionDetails;
+  this.condition_details = nearbyTrail.conditionDetails;
   this.condition_date = nearbyTrail.conditionDate.slice(0,9);
   this.condition_time = nearbyTrail.conditionDate.slice(11,18);
 }
