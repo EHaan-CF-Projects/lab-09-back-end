@@ -2,10 +2,10 @@
   "name": "lab-09-back-end",
   "version": "1.0.0",
   "description": "City Explorer",
-  "main": "db-modules-server.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node db-modules-server.js"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",

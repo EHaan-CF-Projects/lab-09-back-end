@@ -28,7 +28,7 @@ Actual time needed to complete: 1.25 hrs
 
 ## Change Log
 
-12-18-2018 12:00pm - Meetup module functioning.
+12-18-2018 12:00pm - Meetup module functioning. --Created on date is not displaying--
 12-18-2018 03:15pm - Hikes module functioning. --conditions is not displaying--
 
 
