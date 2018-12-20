@@ -30,58 +30,58 @@ function handleError (err, res) {
 }
 
 //===============LOCATION==============================
-app.get('/location', getLocation);
+// app.get('/location', getLocation);
 
-function getLocation(req, res) {
-  let lookupHandler = {
-    cacheHit : (data) => {
-  console.log('Location retrieved from database')
-  res.status(200).send(data.rows[0]);
-    },
-    cacheMiss : (query) => {
-      return fetchLocation(query)
-        .then(result => {
-          res.send(result)
-        })
-    }
-  }
-  lookupLocation(req.query.data, lookupHandler);
-}
+// function getLocation(req, res) {
+//   let lookupHandler = {
+//     cacheHit : (data) => {
+//   console.log('Location retrieved from database')
+//   res.status(200).send(data.rows[0]);
+//     },
+//     cacheMiss : (query) => {
+//       return fetchLocation(query)
+//         .then(result => {
+//           res.send(result)
+//         })
+//     }
+//   }
+//   lookupLocation(req.query.data, lookupHandler);
+// }
 
-function lookupLocation(query, handler) {
-  //check our db for stored data
-  const SQL = 'SELECT * FROM locations WHERE search_query=$1';
-  const values = [query];
-  return client.query(SQL, values)
-  .then(data => {
-  //if we have it, send it back; if not, get it from API
-    if(data.rowCount){
-      handler.cacheHit(data);
-    } else {
-      handler.cacheMiss(query);
-    }
-  })
-}
+// function lookupLocation(query, handler) {
+//   //check our db for stored data
+//   const SQL = 'SELECT * FROM locations WHERE search_query=$1';
+//   const values = [query];
+//   return client.query(SQL, values)
+//   .then(data => {
+//   //if we have it, send it back; if not, get it from API
+//     if(data.rowCount){
+//       handler.cacheHit(data);
+//     } else {
+//       handler.cacheMiss(query);
+//     }
+//   })
+// }
 
-function fetchLocation(query) {
-  const URL = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GOOGLE_MAPS_API}`
-  return superagent.get(URL)
-    .then(result => {
-      console.log('location retrieved from API')
+// function fetchLocation(query) {
+//   const URL = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GOOGLE_MAPS_API}`
+//   return superagent.get(URL)
+//     .then(result => {
+//       console.log('location retrieved from API')
 
-// normalize it & store it in database
-      let location = new Location(result.body.results[0]);
-      let SQL = `INSERT INTO locations
-                (search_query, formatted_query, latitude, longitude, short_name)
-                VALUES($1, $2, $3, $4, $5) RETURNING *`;
-      return client.query(SQL, [query, location.formatted_query, location.latitude, location.longitude, location.short_name])
+// // normalize it & store it in database
+//       let location = new Location(result.body.results[0]);
+//       let SQL = `INSERT INTO locations
+//                 (search_query, formatted_query, latitude, longitude, short_name)
+//                 VALUES($1, $2, $3, $4, $5) RETURNING *`;
+//       return client.query(SQL, [query, location.formatted_query, location.latitude, location.longitude, location.short_name])
 
-// then send it back 
-      .then( (result) => {
-        return result.rows[0];
-      })
-    })
-}
+// // then send it back 
+//       .then( (result) => {
+//         return result.rows[0];
+//       })
+//     })
+// }
 
 // app.get('/location', (req, res) => {
 //   let query = req.query.data;
