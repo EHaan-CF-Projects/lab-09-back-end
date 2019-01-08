@@ -50,6 +50,7 @@ function lookup(options) {
     .then(result => {
       if(result.rowCount) {
         if(Date.now() - result.rows[0].created_at > options.timeout){
+          console.log('data to old to hold, invalidating')
           const SQL = `DELETE FROM ${options.tableName} WHERE location_id=$1`
           const values = [options.location];
           return client.query(SQL, values)
@@ -58,9 +59,11 @@ function lookup(options) {
             })
         }else{
         options.cacheHit(result);
+        console.log('comin in hot from the db')
         }
       } else {
         options.cacheMiss();
+        console.log('comin in hot from the API')
       }
     })
     .catch(error => handleError(error));
