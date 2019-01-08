@@ -15,15 +15,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-//TimeOuts
-const timeOuts = {
-  weather: 15 * 1000,
-  yelp: 60 * 60 * 24 * 90 * 1000,
-  meetups: 60 * 60 * 24 * 1000,
-  movies: 60 * 60 * 24 * 365 * 1000,
-  hikes: 60 * 60 * 1000
-}
-
 //Database Setup
 const client = new pg.Client(process.env.DATABASE_URL);
 client.connect();
@@ -57,8 +48,17 @@ function lookup(options) {
 
   client.query(SQL, values)
     .then(result => {
-      if(result.rowCount > 0) {
+      if(result.rowCount) {
+        if(Date.now() - result.rows[0].created_at > options.timeout){
+          const SQL = `DELETE FROM ${options.tableName} WHERE location_id=$1`
+          const values = [options.location];
+          return client.query(SQL, values)
+            .then(() => {
+              options.cacheMiss();
+            })
+        }else{
         options.cacheHit(result);
+        }
       } else {
         options.cacheMiss();
       }
@@ -147,6 +147,7 @@ function getWeather(request, response) {
   const weatherHandler = {
     tableName: Weather.tableName,
     location: request.query.data.id,
+    timeout: 15 * 1000,
     cacheHit: function (result) {
       response.send(result.rows);
     },
@@ -193,6 +194,7 @@ function getYelp(request, response) {
   const yelpHandler = {
     tableName: Yelp.tableName,
     location: request.query.data.id,
+    timeout: 60 * 60 * 24 * 90 * 1000,
     cacheHit: function (result) {
       response.send(result.rows);
     },
@@ -241,6 +243,7 @@ function getMovies(request, response) {
   const movieHandler = {
     tableName: Movie.tableName,
     location: request.query.data.id,
+    timeout: 60 * 60 * 24 * 365 * 1000,
     cacheHit: function (result) {
       response.send(result.rows);
     },
@@ -285,6 +288,7 @@ function getMeetups(request, response) {
   const meetupsHandler = {
     tableName: Meetup.tableName,
     location: request.query.data.id,
+    timeout: 60 * 60 * 24 * 1000,
     cacheHit: function (result) {
       response.send(result.rows);
     },
@@ -337,6 +341,7 @@ function getTrails(request, response) {
   const trailHandler = {
     tableName: Trail.tableName,
     location: request.query.data.id,
+    timeout:  60 * 60 * 1000,
     cacheHit: function (result) {
       response.send(result.rows);
     },
